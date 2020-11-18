@@ -5,3 +5,5 @@ The aim of this project is to display the best artists according their streams f
 The used ecosystem is Cloudera
 
 ## Architecture
+
+![architecture image](images/archi.png)
