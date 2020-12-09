@@ -61,7 +61,7 @@ def getNewReleased():
 
 # Appel aux méthodes ici
 if __name__ == '__main__':
-    # get_artist('Dehmo')
-    # show_artist_albums(get_artist('Dehmo'))
-    #getArtistTrack('Booba', 10)
-    # getNewReleased()
+    get_artist('Dehmo')
+    show_artist_albums(get_artist('Dehmo'))
+    getArtistTrack('Booba', 10)
+    getNewReleased()
