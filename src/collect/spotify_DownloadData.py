@@ -3,65 +3,44 @@
 
 import spotipy
 import json
+import pandas as pd
+
+from spotipy.oauth2 import SpotifyClientCredentials
+from datetime import date
+
+
+
 
 #définition des variables utilisateur:
 CLIENT_ID="7a37fb7eb8a7444294491f8dd4488c83"
 CLIENT_SECRET="d75fb92060b6440b8f29f26f00c0310a"
 
 #Connection:
-from spotipy.oauth2 import SpotifyClientCredentials
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET))
 
-#test de récuperer les 20 premières chansons:
-def getArtistTrack(name, limit):
-    results = sp.search(q=name, limit=limit)
-    for idx, track in enumerate(results['tracks']['items']):
-        print(idx, track['name'])
+artist_name = []
+track_name = []
+popularity = []
+track_id = []
+release_date = []
 
-#Get Artist Struct
-def get_artist(name):
-    results = sp.search(q='artist:' + name, type='artist')
-    items = results['artists']['items']
-    if len(items) > 0:
-        return items[0]
-    else:
-        return None
+for i in range(0, 2000, 50):
+    track_results = sp.search(q='year:2020', type='track', limit=50, offset=i)
+    for i, t in enumerate(track_results['tracks']['items']):
+        artist_name.append(t['artists'][0]['name'])
+        track_name.append(t['name'])
+        track_id.append(t['id'])
+        popularity.append(t['popularity'])
+        release_date.append(t['album']['release_date'])
 
-#Afficher les albums d'un artiste
-def show_artist_albums(artist):
-    albums = []
-    results = sp.artist_albums(artist['id'], album_type='album')
-    albums.extend(results['items'])
-    while results['next']:
-        results = sp.next(results)
-        albums.extend(results['items'])
-    seen = set()  # to avoid dups
-    albums.sort(key=lambda album: album['name'].lower())
-    for album in albums:
-        name = album['name']
-        if name not in seen:
-            print('ALBUM: %s', name)
-            seen.add(name)
+df_tracks = pd.DataFrame({'artist_name':artist_name,'track_name':track_name,'track_id':track_id,'popularity':popularity,'date':release_date})
+df_tracks.drop_duplicates()
+track_results = sp.search(q='year:2020')
 
-# Get new released:
-# TODO : Idéalement il faut retourné un objet
-def getNewReleased():
-    response = sp.new_releases()
-    while response:
-        albums = response['albums']
-        for i, item in enumerate(albums['items']):
-            print(albums['offset'] + i, item['name'])
-
-        if albums['next']:
-            response = sp.next(albums)
-        else:
-            response = None
-
-
-
-# Appel aux méthodes ici
-if __name__ == '__main__':
-    get_artist('Dehmo')
-    show_artist_albums(get_artist('Dehmo'))
-    getArtistTrack('Booba', 10)
-    getNewReleased()
+# Export des données dans des fichiers JSON
+today = date.today().strftime("%Y-%m-%d")
+file = 'data/{}.json'.format(today)
+with open(file, "w") as f:
+    json.dump(track_results, f, sort_keys=True)
+    f.write('\n')
+f.close()
